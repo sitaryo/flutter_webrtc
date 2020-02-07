@@ -84,7 +84,7 @@ class SignalingService {
 
     pc.onAddStream = (stream) {
       // 获取视频流
-      remoteStreams.add(stream);
+//      remoteStreams.add(stream);
       this.getStream(stream);
     };
 
@@ -145,8 +145,9 @@ class SignalingService {
 
     _webSocketService.onStartResponse = (data) {
       // 3
+      print("startResponse: $data");
       _peerConnection.setRemoteDescription(
-          new RTCSessionDescription(data['sdpAnswer'], 'answer'));
+          new RTCSessionDescription(data, 'answer'));
     };
 
     _webSocketService.onOffer = (data) async {
@@ -181,6 +182,7 @@ class SignalingService {
 
     _webSocketService.onIceCandidate = (data) async {
       //4
+      print("receive ice candidate: $data");
       var pc = _peerConnection;
       RTCIceCandidate candidate = new RTCIceCandidate(data['candidate'],
           data['sdpMid'], data['sdpMLineIndex']);

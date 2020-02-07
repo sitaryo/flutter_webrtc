@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/rtc_video_view.dart';
+import 'package:flutter_webrtc/webrtc.dart';
 import 'package:no_bug/_service/signalingService.dart';
 
 import '_service/websocketService.dart';
@@ -32,20 +33,23 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<String> videoUrls = List();
   List<RTCVideoRenderer> _remoteRenders = List();
+  RTCVideoRenderer renderer = RTCVideoRenderer();
   SignalingService _signalingService = SignalingService();
+
+
+  @override
+  void initState() {
+    super.initState();
+    renderer.initialize();
+  }
 
   _addVideoAddress() async {
 
-//    _signalingService.send();
-    RTCVideoRenderer renderer = RTCVideoRenderer();
-    renderer.initialize();
     _signalingService.getStream = (stream) {
 
       print("you get strem!!!");
-      setState(() {
-        renderer.srcObject = _signalingService.remoteStreams[0];
-        _remoteRenders.add(renderer);
-      });
+
+        renderer.srcObject = stream;
     };
     _signalingService.connect();
     // todo add video address
@@ -61,17 +65,25 @@ class _MyHomePageState extends State<MyHomePage> {
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-            child: ListView(
-              children: _remoteRenders
-                  .map((render) => Container(
-                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        child: RTCVideoView(render),
-                        decoration: new BoxDecoration(color: Colors.black54),
-                      ))
-                  .toList(),
+            child: Container(
+              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: RTCVideoView(renderer),
+              decoration: new BoxDecoration(color: Colors.black54),
             ),
+//            child: ListView(
+//              children:
+//              _remoteRenders
+//                  .map((render) => Container(
+//                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+//                        width: MediaQuery.of(context).size.width,
+//                        height: MediaQuery.of(context).size.height,
+//                        child: RTCVideoView(render),
+//                        decoration: new BoxDecoration(color: Colors.black54),
+//                      ))
+//                  .toList(),
+//            ),
           );
         },
       ),

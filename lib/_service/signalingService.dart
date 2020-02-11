@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:no_bug/_service/WebSocketService.dart';
 
@@ -19,11 +18,13 @@ class SignalingService {
   var _sessionId;
   var _remoteCandidates;
   RTCPeerConnection _peerConnection;
+  String _videoUrl;
 
   GetStream getStream;
 
   List<MediaStream> remoteStreams;
-  static WebSocketService _webSocketService = new WebSocketService('http://192.168.0.106:9090/scoket.io');
+  WebSocketService _webSocketService =
+      new WebSocketService('http://192.168.0.101:9090/scoket.io');
 
   Map<String, dynamic> _iceServers = {
     'iceServers': [
@@ -54,7 +55,9 @@ class SignalingService {
     'optional': [],
   };
 
-
+  SignalingService(String videoUrl) {
+    this._videoUrl = videoUrl;
+  }
 
   close() {
     _peerConnection.close();
@@ -65,7 +68,7 @@ class SignalingService {
     _peerConnection = await _createPeerConnection();
     // create sdp offer
     //    2
-    _createOffer(_peerConnection, 'https://trello-attachments.s3.amazonaws.com/5c07d44ba2bfcc052dd8d358/5e3a5bc4f21dfc2561a09e33/2ea9405a5f24310584f735748e233922/%E5%8F%96%E5%BC%95%E5%B1%A5%E6%AD%B4.mp4');
+    _createOffer(_peerConnection, this._videoUrl);
   }
 
   /// create pc 重要！
@@ -114,8 +117,8 @@ class SignalingService {
     _webSocketService.send(event, data);
   }
 
-  send(){
-    _webSocketService.send2("hello",{"name":"hello world"});
+  send() {
+    _webSocketService.send2("hello", {"name": "hello world"});
   }
 
   _createAnswer(String id, RTCPeerConnection pc, media) async {
@@ -146,8 +149,8 @@ class SignalingService {
     _webSocketService.onStartResponse = (data) {
       // 3
       print("startResponse: $data");
-      _peerConnection.setRemoteDescription(
-          new RTCSessionDescription(data, 'answer'));
+      _peerConnection
+          .setRemoteDescription(new RTCSessionDescription(data, 'answer'));
     };
 
     _webSocketService.onOffer = (data) async {
@@ -184,8 +187,8 @@ class SignalingService {
       //4
       print("receive ice candidate: $data");
       var pc = _peerConnection;
-      RTCIceCandidate candidate = new RTCIceCandidate(data['candidate'],
-          data['sdpMid'], data['sdpMLineIndex']);
+      RTCIceCandidate candidate = new RTCIceCandidate(
+          data['candidate'], data['sdpMid'], data['sdpMLineIndex']);
       if (pc != null) {
         await pc.addCandidate(candidate);
       } else {

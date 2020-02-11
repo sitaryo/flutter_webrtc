@@ -3,8 +3,6 @@ import 'package:flutter_webrtc/rtc_video_view.dart';
 import 'package:flutter_webrtc/webrtc.dart';
 import 'package:no_bug/_service/signalingService.dart';
 
-import '_service/websocketService.dart';
-
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -33,25 +31,34 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<String> videoUrls = List();
   List<RTCVideoRenderer> _remoteRenders = List();
-  RTCVideoRenderer renderer = RTCVideoRenderer();
-  SignalingService _signalingService = SignalingService();
-
+  SignalingService _signalingService = SignalingService(
+      'https://trello-attachments.s3.amazonaws.com/5c07d44ba2bfcc052dd8d358/5e3a5bc4f21dfc2561a09e33/2ea9405a5f24310584f735748e233922/%E5%8F%96%E5%BC%95%E5%B1%A5%E6%AD%B4.mp4');
+  SignalingService _signalingService2 = SignalingService(
+      'https://trello-attachments.s3.amazonaws.com/5c07d44ba2bfcc052dd8d358/5ce2ac248bd4f30de3b393ae/dc8bce49653e40e4ed5c0e747f76725a/RPReplay_Final1558359266.MP4');
 
   @override
   void initState() {
     super.initState();
-    renderer.initialize();
+    for (int i = 0; i < 2; ++i) {
+      RTCVideoRenderer renderer = RTCVideoRenderer();
+      renderer.initialize();
+      _remoteRenders.add(renderer);
+    }
   }
 
   _addVideoAddress() async {
-
     _signalingService.getStream = (stream) {
-
-      print("you get strem!!!");
-
-        renderer.srcObject = stream;
+      print("you get stream 1");
+      _remoteRenders[0].srcObject = stream;
     };
     _signalingService.connect();
+
+    _signalingService2.getStream = (stream) {
+      print("you get stream 2");
+      _remoteRenders[1].srcObject = stream;
+    };
+
+    _signalingService2.connect();
     // todo add video address
     // 弹出编辑视频地址列表，提供编辑功能，确认后，修改视频窗口个数
   }
@@ -65,25 +72,17 @@ class _MyHomePageState extends State<MyHomePage> {
       body: OrientationBuilder(
         builder: (context, orientation) {
           return Center(
-            child: Container(
-              margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              child: RTCVideoView(renderer),
-              decoration: new BoxDecoration(color: Colors.black54),
+            child: ListView(
+              children: _remoteRenders
+                  .map((render) => Container(
+                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
+                        width: MediaQuery.of(context).size.width / 2,
+                        height: MediaQuery.of(context).size.height / 2,
+                        child: RTCVideoView(render),
+                        decoration: new BoxDecoration(color: Colors.black54),
+                      ))
+                  .toList(),
             ),
-//            child: ListView(
-//              children:
-//              _remoteRenders
-//                  .map((render) => Container(
-//                        margin: new EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
-//                        width: MediaQuery.of(context).size.width,
-//                        height: MediaQuery.of(context).size.height,
-//                        child: RTCVideoView(render),
-//                        decoration: new BoxDecoration(color: Colors.black54),
-//                      ))
-//                  .toList(),
-//            ),
           );
         },
       ),
